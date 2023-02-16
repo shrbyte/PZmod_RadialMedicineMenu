@@ -48,11 +48,9 @@ local function getCharacterWounds()
     local t_wounds = {};
     local bodyDamage = character:getBodyDamage();
 
-    --print(bodyDamage:getHealth());
-
     for i = 0, bodyDamage:getBodyParts():size() - 1 do
         local bodyPart = bodyDamage:getBodyParts():get(i);
-        if bodyPart:HasInjury() or (bodyPart:stitched() and not bodyPart:bandaged()) then
+        if bodyPart:HasInjury() or bodyPart:stitched() or bodyPart:bandaged() then
             --print(bodyPart:getType():toString())
 
             t_wounds[bodyPart:getType()] = {};
@@ -61,6 +59,10 @@ local function getCharacterWounds()
             t_wounds[bodyPart:getType()].isBandaged = bodyPart:bandaged();
             t_wounds[bodyPart:getType()].isBandageDirty = bodyPart:isBandageDirty();
             t_wounds[bodyPart:getType()].isDeepWounded = bodyPart:deepWounded();
+            t_wounds[bodyPart:getType()].haveBullet = bodyPart:haveBullet();
+            t_wounds[bodyPart:getType()].haveGlass = bodyPart:haveGlass();
+            t_wounds[bodyPart:getType()].isBurnt = bodyPart:isBurnt();
+            --t_wounds[bodyPart:getType()].isCortorised = bodyPart:isCortorised();
         end
 
     end
@@ -94,8 +96,20 @@ local function getDeepWoundedBodyParts(characterWounds)
     local bodyParts = {};
 
     for k, v in pairs(characterWounds) do
-        if not v.isBandaged and v.isDeepWounded then
+        if (not v.isBandaged and v.isDeepWounded and not v.haveGlass) then
             table.insert(bodyParts, k)
+            print(k)
+        end
+    end
+    return bodyParts;
+end
+
+local function getSpecificWoundedBodyParts(characterWounds)
+    local bodyParts = {};
+
+    for k, v in pairs(characterWounds) do
+        if not v.isBandaged and (v.haveGlass or v.haveBullet or v.isBurnt) then
+            bodyParts[k] = v;
         end
     end
     return bodyParts;
@@ -113,6 +127,22 @@ local function getAllAvailableStitchTools(args)
     end
     if inventory:contains("Needle") and inventory:contains("Thread") then
         t_items[inventory:getItemFromType("Thread")] = true;
+    end
+    return t_items;
+end
+
+local function getAllAvailableTweezers(args)
+    args = args or nil;
+
+    local character = getSpecificPlayer(0);
+    local inventory = character:getInventory();
+    local t_items = {};
+
+    if inventory:contains("Tweezers") then
+        t_items[inventory:getItemFromType("Tweezers")] = true;
+    end
+    if inventory:contains("SutureNeedleHolder") then
+        t_items[inventory:getItemFromType("SutureNeedleHolder")] = true;
     end
     return t_items;
 end
@@ -184,12 +214,9 @@ function ISMedicalRadialMenu:useBandages(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
     local BP = character:getBodyDamage():getBodyPart(args.bodyPart);
-    
-    --print("RadialMED::" .. args.bodyPart:toString() .. " " .. args.action .. " " .. args.item:getType());
 
     if args.action == "apply" then
         ISTimedActionQueue.add(ISApplyBandage:new(character, character, args.item, BP, true));
-        --BP:setBandaged(true, 4.0);
         return;
     end
     
@@ -210,7 +237,18 @@ function ISMedicalRadialMenu:surgeon(args)
     elseif args.action == "ContextMenu_Remove_Stitch"  then
         ISTimedActionQueue.add(ISStitch:new(character, character, args.item, BP, false));
         return;
+    elseif args.action == "ContextMenu_Remove_Glass" then
+        if args.item == "Hands" then
+            ISTimedActionQueue.add(ISRemoveGlass:new(character, character, BP, true));
+        else
+            ISTimedActionQueue.add(ISRemoveGlass:new(character, character, BP));
+        end
+        return;
+    elseif args.action == "ContextMenu_Remove_Bullet" then
+        ISTimedActionQueue.add(ISRemoveBullet:new(character, character, BP));
+        return;
     end
+
 end
 
 function ISMedicalRadialMenu:update()
@@ -280,11 +318,13 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     local t_unbandagedBodyParts = getUnbandagedBodyParts(t_wounds);
     local t_dirtyBandagedBodyParts = getDirtyBandagedBodyParts(t_wounds);
     local t_deepWoundedBodyParts = getDeepWoundedBodyParts(t_wounds);
+    local t_specificWoundedBodyParts = getSpecificWoundedBodyParts(t_wounds);
 
     local t_pills = getAllAvailablePills(true);
     local t_disinfectants = getAllAvailableDisinfectants(true);
     local t_stitchTools = getAllAvailableStitchTools(true);
-    local t_availableBandages = getAllAvailableBandages(self);
+    local t_availableBandages = getAllAvailableBandages(true);
+    local t_availableTweezers = getAllAvailableTweezers(true);
 
     ISMedicalRadialMenu.main = {}
 
@@ -390,7 +430,6 @@ function ISMedicalRadialMenu:fillMenu(submenu)
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[k:getType()] = {}
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[k:getType()].name = k:getName();
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[k:getType()].icon = k:getTexture();
-                    print(k:getTexture())
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[k:getType()].functions = self.useDisinfectant;
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[k:getType()].arguments = {};
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[k:getType()].arguments.item = k;
@@ -412,7 +451,7 @@ function ISMedicalRadialMenu:fillMenu(submenu)
         end
     end
 
-    if len(t_stitchTools) > 0  then
+    if len(t_stitchTools) > 0 or len(t_availableTweezers)  then
         if #t_deepWoundedBodyParts > 0 then
             ISMedicalRadialMenu.main["Surgeon"] = {};
             ISMedicalRadialMenu.main["Surgeon"].name = getText("Surgeon");
@@ -438,6 +477,55 @@ function ISMedicalRadialMenu:fillMenu(submenu)
                     ISMedicalRadialMenu.main["Surgeon"].subMenu[bpDeepWounded].subMenu[k:getType()].arguments.item = k;
                     ISMedicalRadialMenu.main["Surgeon"].subMenu[bpDeepWounded].subMenu[k:getType()].arguments.bodyPart = t_deepWoundedBodyParts[i];
                     ISMedicalRadialMenu.main["Surgeon"].subMenu[bpDeepWounded].subMenu[k:getType()].arguments.action = "ContextMenu_Stitch";
+                end
+
+            end
+        end
+        
+        if len(t_specificWoundedBodyParts) > 0 then
+            ISMedicalRadialMenu.main["Surgeon"] = {};
+            ISMedicalRadialMenu.main["Surgeon"].name = getText("Surgeon");
+            ISMedicalRadialMenu.main["Surgeon"].icon = getTexture("Item_SutureNeedle");
+            ISMedicalRadialMenu.main["Surgeon"].subMenu = {};
+
+            for k, v in pairs(t_specificWoundedBodyParts) do
+                local bpSpecificWounded = k;
+                local s_bpSpecificWounded = bpSpecificWounded:toString();
+
+                ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded] = {};
+                ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].name = BodyPartType.getDisplayName(bpSpecificWounded);
+                ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].icon = getTexture(bodyPartIcons[s_bpSpecificWounded]);
+                ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu = {}
+
+                if v.haveGlass or v.haveBullet then
+                    for ix, _ in pairs(t_availableTweezers) do
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()] = {}
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].name = ix:getName();
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].icon = ix:getTexture();
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].functions = self.surgeon;
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].arguments = {}
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].arguments.category = "Surgeon";
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].arguments.item = ix;
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].arguments.bodyPart = bpSpecificWounded;
+                        if v.haveGlass then
+                            ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].arguments.action = "ContextMenu_Remove_Glass";
+                        else
+                            ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu[ix:getType()].arguments.action = "ContextMenu_Remove_Bullet";
+                        end
+                    end
+
+                    if v.haveGlass then
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"] = {}
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].name = "Hands";
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].icon = getTexture("media/ui/emotes/clap.png");
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].functions = self.surgeon;
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].arguments = {}
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].arguments.category = "Surgeon";
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].arguments.item = "Hands";
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].arguments.bodyPart = bpSpecificWounded;
+                        ISMedicalRadialMenu.main["Surgeon"].subMenu[bpSpecificWounded].subMenu["Hands"].arguments.action = "ContextMenu_Remove_Glass";
+                    end
+
                 end
 
             end
