@@ -57,8 +57,6 @@ local function getCharacterWounds()
     for i = 0, bodyDamage:getBodyParts():size() - 1 do
         local bodyPart = bodyDamage:getBodyParts():get(i);
         if bodyPart:HasInjury() or bodyPart:stitched() or bodyPart:bandaged() then
-            --print(bodyPart:getType():toString())
-
             t_wounds[bodyPart] = {};
             t_wounds[bodyPart].health = bodyPart:getHealth();
             t_wounds[bodyPart].isBleeding = bodyPart:bleeding();
@@ -71,7 +69,6 @@ local function getCharacterWounds()
             t_wounds[bodyPart].isNeedBurnWash = bodyPart:isNeedBurnWash();
             t_wounds[bodyPart].fractureTime = bodyPart:getFractureTime();
             t_wounds[bodyPart].isSplint = bodyPart:isSplint();
-            --t_wounds[bodyPart:getType()].isCortorised = bodyPart:IsCortorised();
         end
 
     end
@@ -296,19 +293,19 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
 end
 
 function ISMedicalRadialMenu:transferIfNeeded(character, item)
-	if instanceof(item, "InventoryItem") then
-		if luautils.haveToBeTransfered(character, item) then
-			ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()))
-		end
-	elseif instanceof(item, "ArrayList") then
-		local items = item
-		for i=1,items:size() do
-			local item = items:get(i-1)
-			if luautils.haveToBeTransfered(character, item) then
-				ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()))
-			end
-		end
-	end
+    if instanceof(item, "InventoryItem") then
+        if luautils.haveToBeTransfered(character, item) then
+            ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()));
+        end
+    elseif instanceof(item, "ArrayList") then
+        local items = item
+        for i=1,items:size() do
+            local item = items:get(i-1)
+            if luautils.haveToBeTransfered(character, item) then
+                ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()));
+            end
+        end
+    end
 end
 
 function ISMedicalRadialMenu:takePills(args)
