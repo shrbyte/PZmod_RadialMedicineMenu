@@ -399,12 +399,7 @@ function ISMedicalRadialMenu:applyCataplasm(args)
 end
 
 function ISMedicalRadialMenu:update()
-end
-function ISMedicalRadialMenu:collectUnbandaged()
-end
-function ISMedicalRadialMenu:collectDirtyBandaged()
-end
-function ISMedicalRadialMenu:collectToDisinfect()
+    
 end
 
 --#endregion
