@@ -53,15 +53,15 @@ local function getCharacterWounds()
         if bodyPart:HasInjury() or bodyPart:stitched() or bodyPart:bandaged() then
             --print(bodyPart:getType():toString())
 
-            t_wounds[bodyPart:getType()] = {};
-            t_wounds[bodyPart:getType()].health = bodyPart:getHealth();
-            t_wounds[bodyPart:getType()].isBleeding = bodyPart:bleeding();
-            t_wounds[bodyPart:getType()].isBandaged = bodyPart:bandaged();
-            t_wounds[bodyPart:getType()].isBandageDirty = bodyPart:isBandageDirty();
-            t_wounds[bodyPart:getType()].isDeepWounded = bodyPart:deepWounded();
-            t_wounds[bodyPart:getType()].haveBullet = bodyPart:haveBullet();
-            t_wounds[bodyPart:getType()].haveGlass = bodyPart:haveGlass();
-            t_wounds[bodyPart:getType()].isBurnt = bodyPart:isBurnt();
+            t_wounds[bodyPart] = {};
+            t_wounds[bodyPart].health = bodyPart:getHealth();
+            t_wounds[bodyPart].isBleeding = bodyPart:bleeding();
+            t_wounds[bodyPart].isBandaged = bodyPart:bandaged();
+            t_wounds[bodyPart].isBandageDirty = bodyPart:isBandageDirty();
+            t_wounds[bodyPart].isDeepWounded = bodyPart:deepWounded();
+            t_wounds[bodyPart].haveBullet = bodyPart:haveBullet();
+            t_wounds[bodyPart].haveGlass = bodyPart:haveGlass();
+            t_wounds[bodyPart].isBurnt = bodyPart:isBurnt();
             --t_wounds[bodyPart:getType()].isCortorised = bodyPart:isCortorised();
         end
 
@@ -75,7 +75,7 @@ local function getUnbandagedBodyParts(characterWounds)
 
     for k, v in pairs(characterWounds) do
         if not v.isBandaged then
-            table.insert(bodyParts, k)
+            table.insert(bodyParts, k:getType())
         end
     end
     return bodyParts;
@@ -97,7 +97,7 @@ local function getDeepWoundedBodyParts(characterWounds)
 
     for k, v in pairs(characterWounds) do
         if (not v.isBandaged and v.isDeepWounded and not v.haveGlass) then
-            table.insert(bodyParts, k)
+            table.insert(bodyParts, k:getType())
             print(k)
         end
     end
@@ -109,7 +109,7 @@ local function getSpecificWoundedBodyParts(characterWounds)
 
     for k, v in pairs(characterWounds) do
         if not v.isBandaged and (v.haveGlass or v.haveBullet or v.isBurnt) then
-            bodyParts[k] = v;
+            bodyParts[k:getType()] = v;
         end
     end
     return bodyParts;
@@ -383,15 +383,15 @@ function ISMedicalRadialMenu:fillMenu(submenu)
             
             ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu = {};
             for i = 1, #t_dirtyBandagedBodyParts do
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]] = {};
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].name = BodyPartType.getDisplayName(t_dirtyBandagedBodyParts[i]);
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].icon = getTexture(bodyPartIcons[t_dirtyBandagedBodyParts[i]:toString()]);
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].functions = self.useBandages;
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].arguments = {};
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].arguments.category = "Dressing";
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].arguments.item = nil;
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].arguments.bodyPart = t_dirtyBandagedBodyParts[i];
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]].arguments.action = "remove";
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()] = {};
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].name = BodyPartType.getDisplayName(t_dirtyBandagedBodyParts[i]:getType());
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].icon = getTexture(bodyPartIcons[t_dirtyBandagedBodyParts[i]:getType():toString()]);
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].functions = self.useBandages;
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].arguments = {};
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].arguments.category = "Dressing";
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].arguments.item = nil;
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].arguments.bodyPart = t_dirtyBandagedBodyParts[i];
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[t_dirtyBandagedBodyParts[i]:getType()].arguments.action = "remove";
             end
 
             ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu["Back"] = {};
