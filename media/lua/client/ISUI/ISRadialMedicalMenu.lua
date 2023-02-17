@@ -398,57 +398,11 @@ function ISMedicalRadialMenu:applyCataplasm(args)
     end
 end
 
-function ISMedicalRadialMenu:update()
-    
-end
-
 --#endregion
 
 --#region Radial Menu logic
 
-function ISMedicalRadialMenu:init()
-    ISMedicalRadialMenu.defaultMenu = {};
-
-    ISMedicalRadialMenu.main = ISMedicalRadialMenu.defaultMenu;
-end
-
-function ISMedicalRadialMenu:new(character)
-	local o = ISBaseObject.new(self);
-	o.character = character;
-	o.playerNum = character:getPlayerNum();
-	return o;
-end
-
-function ISMedicalRadialMenu:display()
-	local menu = getPlayerRadialMenu(self.playerNum);
-	self:center();
-	menu:addToUIManager();
-	if JoypadState.players[self.playerNum+1] then
-		menu:setHideWhenButtonReleased(Joypad.DPadDown);
-		setJoypadFocus(self.playerNum, menu);
-		self.character:setJoypadIgnoreAimUntilCentered(true);
-	end
-end
-
-function ISMedicalRadialMenu:center()
-	local menu = getPlayerRadialMenu(self.playerNum);
-	
-	local x = getPlayerScreenLeft(self.playerNum);
-	local y = getPlayerScreenTop(self.playerNum);
-	local w = getPlayerScreenWidth(self.playerNum);
-	local h = getPlayerScreenHeight(self.playerNum);
-	
-	x = x + w / 2;
-	y = y + h / 2;
-	
-	menu:setX(x - menu:getWidth() / 2);
-	menu:setY(y - menu:getHeight() / 2);
-end
-
-function ISMedicalRadialMenu:fillMenu(submenu)
-    local menu = getPlayerRadialMenu(self.playerNum);
-    menu:clear();
-
+function ISMedicalRadialMenu:update()
     local t_wounds = getCharacterWounds();
     local t_unbandagedBodyParts = getUnbandagedBodyParts(t_wounds);
     local t_dirtyBandagedBodyParts = getDirtyBandagedBodyParts(t_wounds);
@@ -830,9 +784,54 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     
     end
 
+end
+
+function ISMedicalRadialMenu:init()
+    ISMedicalRadialMenu.defaultMenu = {};
+
+    ISMedicalRadialMenu.main = ISMedicalRadialMenu.defaultMenu;
+end
+
+function ISMedicalRadialMenu:new(character)
+	local o = ISBaseObject.new(self);
+	o.character = character;
+	o.playerNum = character:getPlayerNum();
+	return o;
+end
+
+function ISMedicalRadialMenu:display()
+	local menu = getPlayerRadialMenu(self.playerNum);
+	self:center();
+	menu:addToUIManager();
+	if JoypadState.players[self.playerNum+1] then
+		menu:setHideWhenButtonReleased(Joypad.DPadDown);
+		setJoypadFocus(self.playerNum, menu);
+		self.character:setJoypadIgnoreAimUntilCentered(true);
+	end
+end
+
+function ISMedicalRadialMenu:center()
+	local menu = getPlayerRadialMenu(self.playerNum);
+	
+	local x = getPlayerScreenLeft(self.playerNum);
+	local y = getPlayerScreenTop(self.playerNum);
+	local w = getPlayerScreenWidth(self.playerNum);
+	local h = getPlayerScreenHeight(self.playerNum);
+	
+	x = x + w / 2;
+	y = y + h / 2;
+	
+	menu:setX(x - menu:getWidth() / 2);
+	menu:setY(y - menu:getHeight() / 2);
+end
+
+function ISMedicalRadialMenu:fillMenu(submenu)
+    local menu = getPlayerRadialMenu(self.playerNum);
+    menu:clear();
+
     local icon = nil;
     if not submenu then
-        submenu = ISMedicalRadialMenu.main;
+        submenu = self.main;
     end;
     for _, v in pairs(submenu) do
         if v.icon then
@@ -878,6 +877,7 @@ function ISMedicalRadialMenu.onKeyPressed(key)
     
     STATE[1].radialWasVisible = false
     local menu = ISMedicalRadialMenu:new(character);
+    menu:update();
     menu:fillMenu();
 end
 
