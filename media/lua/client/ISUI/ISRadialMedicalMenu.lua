@@ -104,7 +104,6 @@ local function getDeepWoundedBodyParts(characterWounds)
     for k, v in pairs(characterWounds) do
         if (not v.isBandaged and v.isDeepWounded and not v.haveGlass) then
             table.insert(bodyParts, k)
-            print(k)
         end
     end
     return bodyParts;
@@ -311,7 +310,6 @@ end
 function ISMedicalRadialMenu:takePills(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
-    --print(args.item)
     self:transferIfNeeded(character, args.item);
     ISTimedActionQueue.add(ISTakePillAction:new(character, args.item, 165));
 end
@@ -326,7 +324,6 @@ end
 function ISMedicalRadialMenu:useBandages(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
-    --local BP = character:getBodyDamage():getBodyPart(args.bodyPart);
 
     if args.action == "apply" then
         self:transferIfNeeded(character, args.item);
@@ -453,11 +450,6 @@ function ISMedicalRadialMenu:center()
 	menu:setY(y - menu:getHeight() / 2);
 end
 
-function ISMedicalRadialMenu:print(args)
-    if args == nil then return end
-    print("Done!")
-end
-
 function ISMedicalRadialMenu:fillMenu(submenu)
     local menu = getPlayerRadialMenu(self.playerNum);
     menu:clear();
@@ -472,7 +464,6 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     local t_bodyPartsWithoutCataplasm = getBodyPartsWithoutCataplasm(t_wounds)
 
     self:findAllBestMedicine(getSpecificPlayer(0));
-    print(#t_burntBodyParts);
 
     ISMedicalRadialMenu.main = {}
 
@@ -481,7 +472,7 @@ function ISMedicalRadialMenu:fillMenu(submenu)
         
         ISMedicalRadialMenu.main["Dressing"] = {};
         ISMedicalRadialMenu.main["Dressing"].name = getText("ContextMenu_Bandage");
-        ISMedicalRadialMenu.main["Dressing"].icon = getTexture("media/ui/Bandage.png");
+        ISMedicalRadialMenu.main["Dressing"].icon = getTexture("Item_Bandage");
         ISMedicalRadialMenu.main["Dressing"].subMenu = {};
 
         if #t_unbandagedBodyParts > 0 then
@@ -792,7 +783,6 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     end
 
     if (#t_fracturedBodyParts > 0 and self.splint) then
-        print("Tes")
         ISMedicalRadialMenu.main["Fractures"] = {};
         ISMedicalRadialMenu.main["Fractures"].name = getText("ContextMenu_Splint");
         ISMedicalRadialMenu.main["Fractures"].icon = self.splint:getTexture();
