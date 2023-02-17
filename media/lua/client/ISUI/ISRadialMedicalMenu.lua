@@ -3,16 +3,6 @@ require "ISUI/ISRadialMenu"
 
 ISMedicalRadialMenu = ISBaseObject:derive("ISMedicalRadialMenu");
 
-local function len(t)
-    --if not instanceof(t, "Table") then return 0 end;
-    local n = 0
-
-    for _ in pairs(t) do
-        n = n + 1
-    end
-    return n
-end
-
 local bodyPartIcons = {
     ["Back"] = "media/ui/emotes/gears.png",
     ["Foot_L"] = "media/ui/emotes/gears.png",
@@ -34,15 +24,16 @@ local bodyPartIcons = {
     ["UpperLeg_R"] = "media/ui/emotes/gears.png"
 };
 
-local bandageTypes = {
-    "Bandage", "RippedSheets", "Bandaid"
-}
-
-local icons = {
-
-}
-
 --#region Utilities
+
+local function len(t)
+    local n = 0
+
+    for _ in pairs(t) do
+        n = n + 1
+    end
+    return n
+end
 
 local function getContainers(character)
     if not character then return end
@@ -164,134 +155,6 @@ local function getBodyPartsWithoutCataplasm(characterWounds)
         end
     end
     return bodyParts;
-end
-
-local function getAllAvailableStitchTools(args)
-    args = args or nil;
-
-    local character = getSpecificPlayer(0);
-    local inventory = character:getInventory();
-    local surround_containers = getContainers(character);
-    local t_items = {};
-
-    if not surround_containers then return end;
-
-    for i = 1, #surround_containers do
-        if surround_containers[i]:contains("SutureNeedle") then
-            t_items[surround_containers[i]:getItemFromType("SutureNeedle")] = true;
-        end
-        if surround_containers[i]:contains("Needle") and surround_containers[i]:contains("Thread") then
-            t_items[surround_containers[i]:getItemFromType("Needle")] = surround_containers[i]:getItemFromType("Thread");
-        end
-    end
-    return t_items;
-end
-
-local function getAllAvailableTweezers(args)
-    args = args or nil;
-
-    local character = getSpecificPlayer(0);
-    local inventory = character:getInventory();
-    local surround_containers = getContainers(character);
-    local t_items = {};
-
-    if not surround_containers then return end;
-
-    for i = 1, #surround_containers do
-        if surround_containers[i]:contains("Tweezers") then
-            t_items[surround_containers[i]:getItemFromType("Tweezers")] = true;
-        end
-        if surround_containers[i]:contains("SutureNeedleHolder") then
-            t_items[surround_containers[i]:getItemFromType("SutureNeedleHolder")] = true;
-        end
-    end
-
-
-    return t_items;
-end
-
-local function getAllAvailablePills(args)
-    args = args or nil;
-
-    local character = getSpecificPlayer(0);
-    local inventory = character:getInventory();
-    local surround_containers = getContainers(character);
-    local t_items = {};
-
-    if not surround_containers then return t_items end;
-
-    for i = 1, #surround_containers do
-        for j = 0, surround_containers[i]:getItems():size() - 1 do
-            local jx_item = surround_containers[i]:getItems():get(j);
-            if string.match(jx_item:getType(), "Pills") then
-                t_items[jx_item] = true;
-            end
-        end
-    end
-
-    --[=[
-    for i = 0, inventory:getItems():size() - 1 do
-        local ix_item = inventory:getItems():get(i);
-
-        if ix_item:IsInventoryContainer() and ix_item:isEquipped() then
-            for j = 0, ix_item:getInventory():getItems():size() - 1 do
-                local jx_item = ix_item:getInventory():getItems():get(j);
-                --print(item:getInventory():getItems():get(j):getType())
-
-                if string.match(jx_item:getType(), "Pills") then
-                    print(inventory:contains(jx_item:getType(), true))
-                    t_pills[jx_item] = true;
-                end
-            end
-        else
-            if string.match(ix_item:getType(), "Pills") then
-                print(inventory:contains(ix_item:getType(), true))
-                t_pills[ix_item] = true;
-            end
-        end
-
-
-    end
-    ]=]
-    return t_items;
-end
-
-local function getAllAvailableDisinfectants(args)
-    args = args or nil;
-
-    local character = getSpecificPlayer(0);
-    local inventory = character:getInventory();
-    local items = {};
-
-    for i = 0, inventory:getItems():size() - 1 do
-        local item = inventory:getItems():get(i);
-        if item:getAlcoholPower() > 0 and not item:isCanBandage() then
-            items[item] = true;
-        end
-    end
-    return items;
-end
-
-local function getAllAvailableBandages(args)
-    args = args or nil;
-
-    local character = getSpecificPlayer(0);
-    local inventory = character:getInventory();
-    local all_containers = getContainers(character);
-    local t_items = {};
-
-    if not all_containers then return t_items end;
-
-    for i = 1, #all_containers do
-        for j = 0, all_containers[i]:getItems():size() - 1 do
-            local jx_item = all_containers[i]:getItems():get(j);
-            if jx_item:isCanBandage() and not t_items[jx_item] then
-                t_items[jx_item] = true;
-            end
-        end
-    end
-
-    return t_items;
 end
 
 local function isItemTypeInTable(table, item)
@@ -427,14 +290,12 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
                 else
                     self.t_cataplasms[item:getType()] = item;
                 end
-            end
-            
+            end   
         end
     end
 end
 
 function ISMedicalRadialMenu:transferIfNeeded(character, item)
-    --print(item[1])
 	if instanceof(item, "InventoryItem") then
 		if luautils.haveToBeTransfered(character, item) then
 			ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()))
@@ -612,12 +473,6 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     local t_burntBodyParts = getBurntBodyParts(t_wounds);
     local t_fracturedBodyParts = getFracturedBodyParts(t_wounds);
     local t_bodyPartsWithoutCataplasm = getBodyPartsWithoutCataplasm(t_wounds)
-
-    --local t_pills = getAllAvailablePills(true);
-    --local t_disinfectants = getAllAvailableDisinfectants(true);
-    --local t_availableStitchTools = getAllAvailableStitchTools(true);
-    --local t_availableBandages = getAllAvailableBandages(true);
-    --local t_availableTweezers = getAllAvailableTweezers(true);
 
     self:findAllBestMedicine(getSpecificPlayer(0));
     print(#t_burntBodyParts);
@@ -993,22 +848,11 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     
     end
 
-    --[=[
-    ISMedicalRadialMenu.main["Debug"] = {};
-    ISMedicalRadialMenu.main["Debug"].name = getText("Debug");
-    ISMedicalRadialMenu.main["Debug"].subMenu = {};
-    ISMedicalRadialMenu.main["Debug"].subMenu["FindDressing"] = {};
-    ISMedicalRadialMenu.main["Debug"].subMenu["FindDressing"].name = getText("FindDressing");
-    ISMedicalRadialMenu.main["Debug"].subMenu["FindDressing"].functions = self.print;
-    ISMedicalRadialMenu.main["Debug"].subMenu["FindDressing"].arguments = {};
-    ISMedicalRadialMenu.main["Debug"].subMenu["FindDressing"].arguments.category = "Debug";
-    ISMedicalRadialMenu.main["Debug"].subMenu["FindDressing"].arguments.action = "getAllAvailableBandages";
-    ]=]
     local icon = nil;
     if not submenu then
         submenu = ISMedicalRadialMenu.main;
     end;
-    for k, v in pairs(submenu) do
+    for _, v in pairs(submenu) do
         if v.icon then
             icon = v.icon;
         else
@@ -1022,7 +866,6 @@ function ISMedicalRadialMenu:fillMenu(submenu)
         end
         
     end
-    
     self:display();
 end
 
@@ -1050,11 +893,10 @@ function ISMedicalRadialMenu.onKeyPressed(key)
         radialMenu:removeFromUIManager();
         return;
     end
-    --print("That's right!");
     
     STATE[1].radialWasVisible = false
     local menu = ISMedicalRadialMenu:new(character);
-    menu:fillMenu(nil, nil);
+    menu:fillMenu();
 end
 
 function ISMedicalRadialMenu.onKeyRepeat(key)
