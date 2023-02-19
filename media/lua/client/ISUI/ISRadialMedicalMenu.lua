@@ -24,8 +24,6 @@ local bodyPartIcons = {
     ["UpperLeg_R"]  =   "media/ui/bodyparts/UpperLeg_R.png"
 };
 
-
-
 --#region Utilities
 
 local function len(t)
@@ -37,8 +35,8 @@ local function len(t)
     return n
 end
 
-function ISMedicalRadialMenu:getIcon(s_bodyPart)
-    local icon = getTexture(bodyPartIcons[s_bodyPart]);
+function ISMedicalRadialMenu:getBodyPartIcon(s_typeBodyPart)
+    local icon = getTexture(bodyPartIcons[s_typeBodyPart]);
     icon:setWidth(64);
     icon:setHeight(64);
     return icon;
@@ -125,7 +123,7 @@ function ISMedicalRadialMenu:getFragileWoundedBodyParts(characterWounds)
 
     for k, v in pairs(characterWounds) do
         if not v.isBandaged and (v.haveGlass or v.haveBullet) then
-            bodyParts[k] = v;
+            table.insert(bodyParts, k);
         end
     end
     return bodyParts;
@@ -180,7 +178,7 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
     local inventory = character:getInventory();
     local all_containers = self:getContainers(character);
 
-    -- TODO: turn dictionaries to simple array/table
+    -- TODO: turn dictionaries to simple arrays/tables
     --       to avoid storing itemType as keys. 
 
     self.t_itemBandages = {};           -- Table of bandages : [itemType] = Item
@@ -191,10 +189,10 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
     self.t_itemNeedles = {};            -- Table of needles/surgeonNeedles : [itemType] = Item
     self.t_itemCataplasms = {}          -- Table of cataplasms : [itemType] = Item
     self.t_itemTweezers = {};           -- Table of tweezers/sutureNeedleHolder : [itemType] = Item
-    self.itemTweezers = nil;            -- Tweezers : Item
-    self.itemSutureNeedleHolder = nil;  -- SutureNeedleHolder : Item
-    self.itemThread = nil;              -- Thread : Item
-    self.itemSplint = nil;              -- Splint : Item
+    self.itemTweezers = nil;
+    self.itemSutureNeedleHolder = nil;
+    self.itemThread = nil;
+    self.itemSplint = nil;
 
     if not all_containers then return end;
     -----------------------------------------------------------
@@ -359,6 +357,10 @@ function ISMedicalRadialMenu:transferIfNeeded(character, item)
     end
 end
 
+---------------------------------------------------
+-- #TODO: split args -> action, bodypart, items; --
+---------------------------------------------------
+
 function ISMedicalRadialMenu:takePills(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
@@ -484,7 +486,7 @@ function ISMedicalRadialMenu:update()
 
                     ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged] = {}
                     ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].name = BodyPartType.getDisplayName(bpUnbandaged:getType());
-                    ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].icon = self:getIcon(s_bpUnbandaged);
+                    ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].icon = self:getBodyPartIcon(s_bpUnbandaged);
                     ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu = {};
                     
                     for _, v in pairs(self.t_itemCleanBandages) do
@@ -537,7 +539,7 @@ function ISMedicalRadialMenu:update()
 
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged] = {};
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].name = BodyPartType.getDisplayName(bpdirtyBandaged:getType());
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].icon = self:getIcon(s_bpdirtyBandaged);
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].icon = self:getBodyPartIcon(s_bpdirtyBandaged);
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].functions = self.applyBandage;
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments = {};
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.category = "Dressing";
@@ -574,7 +576,7 @@ function ISMedicalRadialMenu:update()
 
                 ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged] = {};
                 ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].name = BodyPartType.getDisplayName(bpUnbandaged:getType());
-                ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].icon = self:getIcon(s_bpUnbandaged);
+                ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].icon = self:getBodyPartIcon(s_bpUnbandaged);
                 ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu = {}
 
                 for _, v in pairs(self.t_itemDisinfectants) do
@@ -615,7 +617,7 @@ function ISMedicalRadialMenu:update()
 
                 ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged] = {};
                 ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].name = BodyPartType.getDisplayName(bpUnbandaged:getType());
-                ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].icon = self:getIcon(s_bpUnbandaged);
+                ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].icon = self:getBodyPartIcon(s_bpUnbandaged);
                 ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].subMenu = {}
 
                 for _, v in pairs(self.t_itemCataplasms) do
@@ -663,7 +665,7 @@ function ISMedicalRadialMenu:update()
 
             ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded] = {};
             ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].name = BodyPartType.getDisplayName(bpDeepWounded:getType());
-            ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].icon = self:getIcon(s_bpDeepWounded);
+            ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].icon = self:getBodyPartIcon(s_bpDeepWounded);
             ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].subMenu = {}
 
             for _, v in pairs(self.t_itemNeedles) do
@@ -710,56 +712,54 @@ function ISMedicalRadialMenu:update()
         ISMedicalRadialMenu.main["Stitch"].subMenu["Back"].arguments = ISMedicalRadialMenu.main;
     end
 
-    if ( len(t_fragileWoundedBodyParts) > 0 and len(self.t_itemTweezers) > 0 ) then
+    if ( #t_fragileWoundedBodyParts > 0 and len(self.t_itemTweezers) > 0 ) then
         ISMedicalRadialMenu.main["Fragiles"] = {};
         ISMedicalRadialMenu.main["Fragiles"].name = getText("ContextMenu_Remove_Glass") .. "/\n" .. getText("ContextMenu_Remove_Bullet");
         ISMedicalRadialMenu.main["Fragiles"].icon = getTexture("Item_Tweezers");
         ISMedicalRadialMenu.main["Fragiles"].subMenu = {};
 
-        for k, v in pairs(t_fragileWoundedBodyParts) do
-            local bpSpecificWounded = k;
-            local s_bpSpecificWounded = bpSpecificWounded:getType():toString();
+        for i = 1, #t_fragileWoundedBodyParts do
+            local bpFragileWoundedBodyPart = t_fragileWoundedBodyParts[i];
+            local s_bpFragileWoundedBodyPart = bpFragileWoundedBodyPart:getType():toString();
 
-            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded] = {};
-            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].name = BodyPartType.getDisplayName(bpSpecificWounded:getType());
-            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].icon = self:getIcon(s_bpSpecificWounded);
-            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu = {}
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart] = {};
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].name = BodyPartType.getDisplayName(bpFragileWoundedBodyPart:getType());
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].icon = self:getBodyPartIcon(s_bpFragileWoundedBodyPart);
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu = {}
 
-            if v.haveGlass or v.haveBullet then
-                for _, iv in pairs(self.t_itemTweezers) do
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()] = {}
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].name = iv:getName();
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].icon = iv:getTexture();
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].functions = self.surgeon;
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].arguments = {}
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].arguments.category = "Fragiles";
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].arguments.item = iv;
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].arguments.bodyPart = bpSpecificWounded;
-                    if v.haveGlass then
-                        ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].arguments.action = "ContextMenu_Remove_Glass";
-                    else
-                        ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu[iv:getType()].arguments.action = "ContextMenu_Remove_Bullet";
-                    end
+            for _, v in pairs(self.t_itemTweezers) do
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()] = {}
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].name = v:getName();
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].icon = v:getTexture();
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].functions = self.surgeon;
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].arguments = {}
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].arguments.category = "Fragiles";
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].arguments.item = v;
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].arguments.bodyPart = bpFragileWoundedBodyPart;
+                if bpFragileWoundedBodyPart:haveGlass() then
+                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].arguments.action = "ContextMenu_Remove_Glass";
+                else
+                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu[v:getType()].arguments.action = "ContextMenu_Remove_Bullet";
                 end
-
-                if v.haveGlass then
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"] = {}
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].name = "Hands";
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].icon = getTexture("media/ui/emotes/clap.png");
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].functions = self.surgeon;
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].arguments = {}
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].arguments.category = "Fragiles";
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].arguments.item = "Hands";
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].arguments.bodyPart = bpSpecificWounded;
-                    ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Hands"].arguments.action = "ContextMenu_Remove_Glass";
-                end
-
-                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Back"] = {};
-                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Back"].name = getText("IGUI_Emote_Back");
-                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Back"].icon = getTexture("media/ui/emotes/back.png");
-                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Back"].functions = self.fillMenu;
-                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu["Back"].arguments = ISMedicalRadialMenu.main["Fragiles"].subMenu;
             end
+
+            if bpFragileWoundedBodyPart:haveGlass() then
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"] = {}
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].name = getText("ContextMenu_Hand");
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].icon = getTexture("media/ui/emotes/clap.png");
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].functions = self.surgeon;
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].arguments = {}
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].arguments.category = "Fragiles";
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].arguments.item = "Hands";
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].arguments.bodyPart = bpFragileWoundedBodyPart;
+                ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Hands"].arguments.action = "ContextMenu_Remove_Glass";
+            end
+
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Back"] = {};
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Back"].name = getText("IGUI_Emote_Back");
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Back"].icon = getTexture("media/ui/emotes/back.png");
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Back"].functions = self.fillMenu;
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpFragileWoundedBodyPart].subMenu["Back"].arguments = ISMedicalRadialMenu.main["Fragiles"].subMenu;
         end
         ISMedicalRadialMenu.main["Fragiles"].subMenu["Back"] = {};
         ISMedicalRadialMenu.main["Fragiles"].subMenu["Back"].name = getText("IGUI_Emote_Back");
@@ -780,7 +780,7 @@ function ISMedicalRadialMenu:update()
             
             ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt] = {};
             ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].name = BodyPartType.getDisplayName(bpBurnt:getType());
-            ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].icon = self:getIcon(s_bpBurnt);
+            ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].icon = self:getBodyPartIcon(s_bpBurnt);
             ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].subMenu = {}
 
             for _, v in pairs(self.t_itemCleanBandages) do
@@ -823,7 +823,7 @@ function ISMedicalRadialMenu:update()
 
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured] = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].name = BodyPartType.getDisplayName(bpFractured:getType());
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].icon = self:getIcon(s_bpFractured);
+            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].icon = self:getBodyPartIcon(s_bpFractured);
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].functions = self.surgeon;
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.category = "Fractures";
@@ -930,6 +930,7 @@ STATE[2] = {}
 STATE[3] = {}
 STATE[4] = {}
 
+-- 
 function ISMedicalRadialMenu.checkKey(key)
     if key ~= 44 then
         return false;
