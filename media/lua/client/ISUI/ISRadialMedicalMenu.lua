@@ -377,13 +377,13 @@ function ISMedicalRadialMenu:applyBandage(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
 
-    if args.action == "apply" then
+    if args.action == "ContextMenu_Bandage" then
         self:transferIfNeeded(character, args.item);
         ISTimedActionQueue.add(ISApplyBandage:new(character, character, args.item, args.bodyPart, true));
         return;
     end
     
-    if args.action == "remove" then
+    if args.action == "ContextMenu_Remove_Bandage" then
         ISTimedActionQueue.add(ISApplyBandage:new(character, character, nil, args.bodyPart));
         return;
     end
@@ -392,7 +392,6 @@ end
 function ISMedicalRadialMenu:surgeon(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
-    --local BP = character:getBodyDamage():getBodyPart(args.bodyPart);
 
     if args.action == "ContextMenu_Stitch" then
         self:transferIfNeeded(character, args.item)
@@ -498,7 +497,7 @@ function ISMedicalRadialMenu:update()
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.category = "Dressing";
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.item = v;
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.bodyPart = bpUnbandaged;
-                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.action = "apply";
+                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.action = "ContextMenu_Bandage";
 
                     end
 
@@ -512,7 +511,7 @@ function ISMedicalRadialMenu:update()
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.category = "Dressing";
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.item = v;
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.bodyPart = bpUnbandaged;
-                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.action = "apply";
+                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.action = "ContextMenu_Bandage";
 
                     end
     
@@ -544,7 +543,7 @@ function ISMedicalRadialMenu:update()
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.category = "Dressing";
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.item = bpdirtyBandaged:getBandageType();
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.bodyPart = bpdirtyBandaged;
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.action = "remove";
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.action = "ContextMenu_Remove_Bandage";
             end
 
             ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu["Back"] = {};
