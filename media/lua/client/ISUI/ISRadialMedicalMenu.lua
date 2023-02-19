@@ -4,25 +4,27 @@ require "ISUI/ISRadialMenu"
 ISMedicalRadialMenu = ISBaseObject:derive("ISMedicalRadialMenu");
 
 local bodyPartIcons = {
-    ["Back"] = "media/ui/emotes/gears.png",
-    ["Foot_L"] = "media/ui/emotes/gears.png",
-    ["Foot_R"] = "media/ui/emotes/gears.png",
-    ["ForeArm_L"] = "media/ui/emotes/wavebye.png",
-    ["ForeArm_R"] = "media/ui/emotes/wavehello.png",
-    ["Groin"] = "media/ui/emotes/gears.png", 
-    ["Hand_L"] = "media/ui/emotes/wavebye.png",
-    ["Hand_R"] = "media/ui/emotes/wavehello.png", 
-    ["Head"] = "media/ui/emotes/gears.png", 
-    ["LowerLeg_L"] = "media/ui/emotes/gears.png", 
-    ["LowerLeg_R"] = "media/ui/emotes/gears.png", 
-    ["Neck"] = "media/ui/emotes/gears.png", 
-    ["Torso_Lower"] = "media/ui/emotes/gears.png", 
-    ["Torso_Upper"] = "media/ui/emotes/gears.png", 
-    ["UpperArm_L"] = "media/ui/emotes/gears.png", 
-    ["UpperArm_R"] = "media/ui/emotes/gears.png", 
-    ["UpperLeg_L"] = "media/ui/emotes/gears.png", 
-    ["UpperLeg_R"] = "media/ui/emotes/gears.png"
+    ["Back"]        =   "media/ui/emotes/gears.png",
+    ["Foot_L"]      =   "media/ui/bodyparts/Foot_L.png",
+    ["Foot_R"]      =   "media/ui/bodyparts/Foot_R.png",
+    ["ForeArm_L"]   =   "media/ui/bodyparts/ForeArm_L.png",
+    ["ForeArm_R"]   =   "media/ui/bodyparts/ForeArm_R.png",
+    ["Groin"]       =   "media/ui/bodyparts/Groin.png", 
+    ["Hand_L"]      =   "media/ui/bodyparts/Hand_L.png",
+    ["Hand_R"]      =   "media/ui/bodyparts/Hand_R.png", 
+    ["Head"]        =   "media/ui/bodyparts/Head.png", 
+    ["LowerLeg_L"]  =   "media/ui/bodyparts/LowerLeg_L.png", 
+    ["LowerLeg_R"]  =   "media/ui/bodyparts/LowerLeg_R.png", 
+    ["Neck"]        =   "media/ui/bodyparts/Neck.png", 
+    ["Torso_Lower"] =   "media/ui/bodyparts/Torso_Lower.png", 
+    ["Torso_Upper"] =   "media/ui/bodyparts/Torso_Upper.png", 
+    ["UpperArm_L"]  =   "media/ui/bodyparts/UpperArm_L.png", 
+    ["UpperArm_R"]  =   "media/ui/bodyparts/UpperArm_R.png", 
+    ["UpperLeg_L"]  =   "media/ui/bodyparts/UpperLeg_L.png", 
+    ["UpperLeg_R"]  =   "media/ui/bodyparts/UpperLeg_R.png"
 };
+
+
 
 --#region Utilities
 
@@ -33,6 +35,13 @@ local function len(t)
         n = n + 1
     end
     return n
+end
+
+function ISMedicalRadialMenu:getIcon(s_bodyPart)
+    local icon = getTexture(bodyPartIcons[s_bodyPart]);
+    icon:setWidth(64);
+    icon:setHeight(64);
+    return icon;
 end
 
 function ISMedicalRadialMenu:getContainers(character)
@@ -174,16 +183,18 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
     -- TODO: turn dictionaries to simple array/table
     --       to avoid storing itemType as keys. 
 
-    self.t_itemBandages = {};       -- Table of bandages : [itemType] = Item
-    self.t_itemCleanBandages = {};  -- Table of clean bandages : [itemType] = Item
-    self.t_itemDirtyBandages = {};  -- Table of dirty bandages : [itemType] = Item
-    self.t_itemDisinfectants = {};  -- Table of disinfectants : [itemType] = Item
-    self.t_itemPills = {};          -- Table of pills : [itemType] = Item
-    self.t_itemTweezers = {};       -- Table of tweezers/sutureNeedleHolder : [itemType] = Item
-    self.t_itemNeedles = {};        -- Table of needles/surgeonNeedles : [itemType] = Item
-    self.t_itemCataplasms = {}      -- Table of cataplasms : [itemType] = Item
-    self.itemThread = nil;          -- Thread : Item
-    self.itemSplint = nil;          -- Splint : Item
+    self.t_itemBandages = {};           -- Table of bandages : [itemType] = Item
+    self.t_itemCleanBandages = {};      -- Table of clean bandages : [itemType] = Item
+    self.t_itemDirtyBandages = {};      -- Table of dirty bandages : [itemType] = Item
+    self.t_itemDisinfectants = {};      -- Table of disinfectants : [itemType] = Item
+    self.t_itemPills = {};              -- Table of pills : [itemType] = Item
+    self.t_itemNeedles = {};            -- Table of needles/surgeonNeedles : [itemType] = Item
+    self.t_itemCataplasms = {}          -- Table of cataplasms : [itemType] = Item
+    self.t_itemTweezers = {};           -- Table of tweezers/sutureNeedleHolder : [itemType] = Item
+    self.itemTweezers = nil;            -- Tweezers : Item
+    self.itemSutureNeedleHolder = nil;  -- SutureNeedleHolder : Item
+    self.itemThread = nil;              -- Thread : Item
+    self.itemSplint = nil;              -- Splint : Item
 
     if not all_containers then return end;
     -----------------------------------------------------------
@@ -257,6 +268,26 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
                 else
                     self.t_itemTweezers[item:getType()] = item;
                 end
+
+                if item:getType() == "Tweezers" then
+                    if self.itemTweezers then
+                        if inventory:contains(item, false) then
+                            self.itemTweezers = item;
+                        end
+                    else
+                        self.itemTweezers = item;
+                    end
+                end
+
+                if item:getType() == "SutureNeedleHolder" then
+                    if self.itemSutureNeedleHolder then
+                        if inventory:contains(item, false) then
+                            self.itemSutureNeedleHolder = item;
+                        end
+                    else
+                        self.itemSutureNeedleHolder = item;
+                    end
+                end
             end
             
             --- Looking for needles
@@ -309,13 +340,19 @@ end
 function ISMedicalRadialMenu:transferIfNeeded(character, item)
     if instanceof(item, "InventoryItem") then
         if luautils.haveToBeTransfered(character, item) then
+            if not luautils.walkToContainer(item:getContainer(), character:getPlayerNum()) then
+                return
+            end
             ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()));
         end
     elseif instanceof(item, "ArrayList") then
-        local items = item
+        local items = item;
         for i=1,items:size() do
             local item = items:get(i-1)
             if luautils.haveToBeTransfered(character, item) then
+                if not luautils.walkToContainer(item:getContainer(), character:getPlayerNum()) then
+                    return;
+                end
                 ISTimedActionQueue.add(ISInventoryTransferAction:new(character, item, item:getContainer(), character:getInventory()));
             end
         end
@@ -329,14 +366,14 @@ function ISMedicalRadialMenu:takePills(args)
     ISTimedActionQueue.add(ISTakePillAction:new(character, args.item, 165));
 end
 
-function ISMedicalRadialMenu:useDisinfectant(args)
+function ISMedicalRadialMenu:applyDisinfectant(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
     self:transferIfNeeded(character, args.item);
     ISTimedActionQueue.add(ISDisinfect:new(character, character, args.item, args.bodyPart));
 end
 
-function ISMedicalRadialMenu:useBandages(args)
+function ISMedicalRadialMenu:applyBandage(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
 
@@ -361,7 +398,7 @@ function ISMedicalRadialMenu:surgeon(args)
         self:transferIfNeeded(character, args.item)
         if instanceof(args.item, "InventoryItem") then
             ISTimedActionQueue.add(ISStitch:new(character, character, args.item, args.bodyPart, true));
-        else 
+        else
             ISTimedActionQueue.add(ISStitch:new(character, character, args.item:get(0), args.bodyPart, true));
         end;
         return;
@@ -415,7 +452,7 @@ end
 
 --#endregion
 
---#region Radial Menu logic
+--#region Radial Menu display logic
 
 function ISMedicalRadialMenu:update()
     local t_wounds = self:getCharacterWounds();
@@ -448,15 +485,15 @@ function ISMedicalRadialMenu:update()
 
                     ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged] = {}
                     ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].name = BodyPartType.getDisplayName(bpUnbandaged:getType());
-                    ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].icon = getTexture(bodyPartIcons[s_bpUnbandaged]);
-                    ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu = {};                
+                    ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].icon = self:getIcon(s_bpUnbandaged);
+                    ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu = {};
                     
                     for _, v in pairs(self.t_itemCleanBandages) do
 
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()] = {};
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].name = v:getName();
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].icon = v:getTexture();
-                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].functions = self.useBandages;
+                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].functions = self.applyBandage;
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments = {};
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.category = "Dressing";
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.item = v;
@@ -470,7 +507,7 @@ function ISMedicalRadialMenu:update()
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()] = {};
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].name = v:getName();
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].icon = v:getTexture();
-                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].functions = self.useBandages;
+                        ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].functions = self.applyBandage;
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments = {};
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.category = "Dressing";
                         ISMedicalRadialMenu.main["Dressing"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.item = v;
@@ -501,8 +538,8 @@ function ISMedicalRadialMenu:update()
 
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged] = {};
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].name = BodyPartType.getDisplayName(bpdirtyBandaged:getType());
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].icon = getTexture(bodyPartIcons[s_bpdirtyBandaged]);
-                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].functions = self.useBandages;
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].icon = self:getIcon(s_bpdirtyBandaged);
+                ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].functions = self.applyBandage;
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments = {};
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.category = "Dressing";
                 ISMedicalRadialMenu.main["Dressing"].subMenu["Remove"].subMenu[s_bpdirtyBandaged].arguments.item = bpdirtyBandaged:getBandageType();
@@ -538,14 +575,14 @@ function ISMedicalRadialMenu:update()
 
                 ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged] = {};
                 ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].name = BodyPartType.getDisplayName(bpUnbandaged:getType());
-                ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].icon = getTexture(bodyPartIcons[s_bpUnbandaged]);
+                ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].icon = self:getIcon(s_bpUnbandaged);
                 ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu = {}
 
                 for _, v in pairs(self.t_itemDisinfectants) do
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()] = {}
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].name = v:getName();
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].icon = v:getTexture();
-                    ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].functions = self.useDisinfectant;
+                    ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].functions = self.applyDisinfectant;
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments = {};
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.item = v;
                     ISMedicalRadialMenu.main["Disinfect"].subMenu[s_bpUnbandaged].subMenu[v:getType()].arguments.bodyPart = bpUnbandaged;
@@ -579,7 +616,7 @@ function ISMedicalRadialMenu:update()
 
                 ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged] = {};
                 ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].name = BodyPartType.getDisplayName(bpUnbandaged:getType());
-                ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].icon = getTexture(bodyPartIcons[s_bpUnbandaged]);
+                ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].icon = self:getIcon(s_bpUnbandaged);
                 ISMedicalRadialMenu.main["Cataplasm"].subMenu[s_bpUnbandaged].subMenu = {}
 
                 for _, v in pairs(self.t_itemCataplasms) do
@@ -627,7 +664,7 @@ function ISMedicalRadialMenu:update()
 
             ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded] = {};
             ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].name = BodyPartType.getDisplayName(bpDeepWounded:getType());
-            ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].icon = getTexture(bodyPartIcons[s_bpDeepWounded]);
+            ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].icon = self:getIcon(s_bpDeepWounded);
             ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].subMenu = {}
 
             for _, v in pairs(self.t_itemNeedles) do
@@ -644,6 +681,9 @@ function ISMedicalRadialMenu:update()
                 elseif v:getType() == "Needle" and self.itemThread then
                     local items = ArrayList.new();
                     items:add(self.itemThread);    items:add(v);
+                    if self.itemSutureNeedleHolder then
+                        items:add(self.itemSutureNeedleHolder);
+                    end
                     ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].subMenu[v:getType()] = {}
                     ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].subMenu[v:getType()].name = v:getName();
                     ISMedicalRadialMenu.main["Stitch"].subMenu[s_bpDeepWounded].subMenu[v:getType()].icon = v:getTexture();
@@ -683,7 +723,7 @@ function ISMedicalRadialMenu:update()
 
             ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded] = {};
             ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].name = BodyPartType.getDisplayName(bpSpecificWounded:getType());
-            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].icon = getTexture(bodyPartIcons[s_bpSpecificWounded]);
+            ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].icon = self:getIcon(s_bpSpecificWounded);
             ISMedicalRadialMenu.main["Fragiles"].subMenu[s_bpSpecificWounded].subMenu = {}
 
             if v.haveGlass or v.haveBullet then
@@ -741,7 +781,7 @@ function ISMedicalRadialMenu:update()
             
             ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt] = {};
             ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].name = BodyPartType.getDisplayName(bpBurnt:getType());
-            ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].icon = getTexture(bodyPartIcons[s_bpBurnt]);
+            ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].icon = self:getIcon(s_bpBurnt);
             ISMedicalRadialMenu.main["Burnts"].subMenu[s_bpBurnt].subMenu = {}
 
             for _, v in pairs(self.t_itemCleanBandages) do
@@ -784,7 +824,7 @@ function ISMedicalRadialMenu:update()
 
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured] = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].name = BodyPartType.getDisplayName(bpFractured:getType());
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].icon = getTexture(bodyPartIcons[s_bpFractured]);
+            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].icon = self:getIcon(s_bpFractured);
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].functions = self.surgeon;
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.category = "Fractures";
@@ -885,52 +925,80 @@ function ISMedicalRadialMenu:fillMenu(submenu)
     self:display();
 end
 
-function ISMedicalRadialMenu.keyCheck(key)
-    if (key == 44) then
-        return true;
-    else 
-        return false;
-    end
-end
-
 local STATE = {}
 STATE[1] = {}
+STATE[2] = {}
+STATE[3] = {}
+STATE[4] = {}
+
+function ISMedicalRadialMenu.checkKey(key)
+    if key ~= 44 then
+        return false;
+    end
+    --if isGamePaused() then
+    --    return false;
+    --end
+    local character = getSpecificPlayer(0);
+    if not character or character:isDead() then
+        return false;
+    end;
+    local queue = ISTimedActionQueue.queues[character]
+	if queue and #queue.queue > 0 then
+		return false
+	end
+    return true;
+end
 
 function ISMedicalRadialMenu.onKeyPressed(key)
-    if not ISMedicalRadialMenu.keyCheck(key) then
+    if not ISMedicalRadialMenu.checkKey(key) then
         return;
     end
 
-    local character = getSpecificPlayer(0);
 	local radialMenu = getPlayerRadialMenu(0);
-
     if getCore():getOptionRadialMenuKeyToggle() and radialMenu:isReallyVisible() then
         STATE[1].radialWasVisible = true;
         radialMenu:removeFromUIManager();
         return;
     end
-    
-    STATE[1].radialWasVisible = false
-    local menu = ISMedicalRadialMenu:new(character);
-    menu:update();
-    menu:fillMenu();
+    STATE[1].keyPressedMS = getTimestampMs();
+    STATE[1].radialWasVisible = false;
 end
 
 function ISMedicalRadialMenu.onKeyRepeat(key)
-end
-
-function ISMedicalRadialMenu.onKeyReleased(key)
-    if not ISMedicalRadialMenu.keyCheck(key) then
+    if not ISMedicalRadialMenu.checkKey(key) then
+        return;
+    end
+    if STATE[1].radialWasVisible then
+        return;
+    end
+    if not STATE[1].keyPressedMS then
         return;
     end
 
-	local radialMenu = getPlayerRadialMenu(0);
+    local radialMenu = getPlayerRadialMenu(0);
+    local delay = 500;
+    if (getTimestampMs() - STATE[1].keyPressedMS >= delay) and not radialMenu:isReallyVisible() then
+        local menu = ISMedicalRadialMenu:new(getSpecificPlayer(0));
+        menu:update();
+        menu:fillMenu();
+    end
+end
+
+function ISMedicalRadialMenu.onKeyReleased(key)
+    if not ISMedicalRadialMenu.checkKey(key) then
+		return;
+	end
+	if not STATE[1].keyPressedMS then
+		return;
+	end
+	local radialMenu = getPlayerRadialMenu(0)
 	if radialMenu:isReallyVisible() or STATE[1].radialWasVisible then
 		if not getCore():getOptionRadialMenuKeyToggle() then
 			radialMenu:removeFromUIManager();
 		end
-		return
+		return;
 	end
+	STATE[1].keyPressedMS = nil
 end
 
 --#endregion
