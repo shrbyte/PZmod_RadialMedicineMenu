@@ -3,6 +3,15 @@ require "ISUI/ISRadialMenu"
 
 ISRadialMedicineMenu = ISBaseObject:derive("ISRadialMedicineMenu");
 
+local KEY_RMM = {
+    name = "Radial Medicine Menu",
+    key = Keyboard.KEY_Z,
+}
+
+if ModOptions and ModOptions.AddKeyBinding then
+    ModOptions:AddKeyBinding("[UI]", KEY_RMM)
+end
+
 local bodyPartIcons = {
     ["Back"]        =   "media/ui/emotes/gears.png",
     ["Foot_L"]      =   "media/ui/bodyparts/Foot_L.png",
@@ -988,7 +997,7 @@ STATE[3] = {}
 STATE[4] = {}
 
 function ISRadialMedicineMenu.checkKey(key)
-    if key ~= 44 then
+    if key ~= KEY_RMM.key then
         return false;
     end
     --if isGamePaused() then
