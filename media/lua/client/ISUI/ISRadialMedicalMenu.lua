@@ -396,7 +396,7 @@ function ISMedicalRadialMenu:takePills(args)
     self:transferIfNeeded(character, args.item);
     local takePillsAction = ISTakePillAction:new(character, args.item, 165);
     ISTimedActionQueue.add(takePillsAction);
-    if args.item:getDrainableUsesInt() > 1 then
+    if args.item:getDrainableUsesInt() > 1 and srcContainer:getType() ~= "floor" then
         ISTimedActionQueue.addAfter(takePillsAction, ISInventoryTransferAction:new(character, args.item, character:getInventory(), srcContainer));
     end
 end
