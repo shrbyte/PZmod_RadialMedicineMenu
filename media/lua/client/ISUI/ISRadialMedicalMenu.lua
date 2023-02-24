@@ -391,8 +391,14 @@ end
 function ISMedicalRadialMenu:takePills(args)
     if args == nil then return end;
     local character = getSpecificPlayer(0);
+    local srcContainer = args.item:getContainer();
+
     self:transferIfNeeded(character, args.item);
-    ISTimedActionQueue.add(ISTakePillAction:new(character, args.item, 165));
+    local takePillsAction = ISTakePillAction:new(character, args.item, 165);
+    ISTimedActionQueue.add(takePillsAction);
+    if args.item:getDrainableUsesInt() > 1 then
+        ISTimedActionQueue.addAfter(takePillsAction, ISInventoryTransferAction:new(character, args.item, character:getInventory(), srcContainer));
+    end
 end
 
 function ISMedicalRadialMenu:applyDisinfectant(args)
@@ -839,10 +845,10 @@ function ISMedicalRadialMenu:update()
         ISMedicalRadialMenu.main["Burnts"].subMenu["Back"].arguments = ISMedicalRadialMenu.main;
     end
 
-    if (#t_fracturedBodyParts > 0 and (self.itemSplint or (self.t_itemPlanks and self.itemRag)) ) then
+    if (#t_fracturedBodyParts > 0 and (self.itemSplint or (len(self.t_itemPlanks) > 0 and self.itemRag)) ) then
         ISMedicalRadialMenu.main["Fractures"] = {};
         ISMedicalRadialMenu.main["Fractures"].name = getText("ContextMenu_Splint");
-        ISMedicalRadialMenu.main["Fractures"].icon = self.itemSplint:getTexture();
+        ISMedicalRadialMenu.main["Fractures"].icon = getTexture("Item_Splint");
         ISMedicalRadialMenu.main["Fractures"].subMenu = {};
 
         for i = 1, #t_fracturedBodyParts do
