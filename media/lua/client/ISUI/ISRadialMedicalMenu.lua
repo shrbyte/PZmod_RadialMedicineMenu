@@ -185,12 +185,14 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
     self.t_itemPills = {};              -- Table of pills : [itemType] = Item
     self.t_itemCataplasms = {}          -- Table of cataplasms : [itemType] = Item
     self.t_itemTweezers = {};           -- Table of tweezers/sutureNeedleHolder : [itemType] = Item
+    self.t_itemPlanks = {};             -- Plank/stick/etc for splint.
     self.itemNeedle = nil;
     self.itemSutureNeedle = nil;
     self.itemTweezers = nil;
     self.itemSutureNeedleHolder = nil;
     self.itemThread = nil;
     self.itemSplint = nil;
+    self.itemRag = nil;                 -- DirtyRag/RippedSheets for splint.
 
     if not all_containers then return end;
     -----------------------------------------------------------
@@ -282,19 +284,6 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
                     end
                 end
             end
-            
-            --- Looking for needles
-            --[=[
-            if item:getType() == "SutureNeedle" or item:getType() == "Needle" then
-                if self:isItemTypeInTable(self.t_itemNeedles, item) then
-                    if inventory:contains(item, false) then
-                        self.t_itemNeedles[item:getType()] = item;
-                    end
-                else
-                    self.t_itemNeedles[item:getType()] = item;
-                end
-            end
-            ]=]
 
             if item:getType() == "SutureNeedle" then
                 if self.itemSutureNeedle then
@@ -333,6 +322,26 @@ function ISMedicalRadialMenu:findAllBestMedicine(character)
                     end
                 else
                     self.itemSplint = item;
+                end
+            end
+
+            if item:getType() == "Plank" or item:getType() == "TreeBranch" or item:getType() == "WoodenStick" then
+                if self:isItemTypeInTable(self.t_itemPlanks, item) then
+                    if inventory:contains(item, false) then
+                        self.t_itemPlanks[item:getType()] = item;
+                    end
+                else
+                    self.t_itemPlanks[item:getType()] = item;
+                end
+            end
+
+            if item:getType() == "RippedSheets" or item:getType() == "RippedSheetsDirty" then
+                if self.itemRag then
+                    if inventory:contains(item, false) then
+                        self.itemRag = item;
+                    end
+                else
+                    self.itemRag = item;
                 end
             end
 
@@ -451,10 +460,15 @@ function ISMedicalRadialMenu:splint(args)
 
     if args.action == "ContextMenu_Splint" then
         self:transferIfNeeded(character, args.item);
-        ISTimedActionQueue.add(ISSplint:new(character, character, nil, args.item, args.bodyPart, true));
-        return;
+        if instanceof(args.item, "InventoryItem") then
+            ISTimedActionQueue.add(ISSplint:new(character, character, nil, args.item, args.bodyPart, true));
+        else
+            ISTimedActionQueue.add(ISSplint:new(character, character, args.item:get(0), args.item:get(1), args.bodyPart, true));
+            return;
+        end
     elseif args.action == "ContextMenu_Splint_Remove" then
         ISTimedActionQueue.add(ISSplint:new(character, character, nil, nil, args.bodyPart));
+        return;
     end
 end
 
@@ -825,7 +839,7 @@ function ISMedicalRadialMenu:update()
         ISMedicalRadialMenu.main["Burnts"].subMenu["Back"].arguments = ISMedicalRadialMenu.main;
     end
 
-    if (#t_fracturedBodyParts > 0 and self.itemSplint) then
+    if (#t_fracturedBodyParts > 0 and (self.itemSplint or (self.t_itemPlanks and self.itemRag)) ) then
         ISMedicalRadialMenu.main["Fractures"] = {};
         ISMedicalRadialMenu.main["Fractures"].name = getText("ContextMenu_Splint");
         ISMedicalRadialMenu.main["Fractures"].icon = self.itemSplint:getTexture();
@@ -834,15 +848,37 @@ function ISMedicalRadialMenu:update()
         for i = 1, #t_fracturedBodyParts do
             local bpFractured = t_fracturedBodyParts[i];
             local s_bpFractured = bpFractured:getType():toString();
-
+            
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured] = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].name = BodyPartType.getDisplayName(bpFractured:getType());
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].icon = self:getBodyPartIcon(s_bpFractured);
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].functions = self.splint;
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments = {};
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.item = self.itemSplint;
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.bodyPart = bpFractured;
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.action = "ContextMenu_Splint";
+            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu = {};
+            
+            if self.t_itemPlanks and self.itemRag then
+                for k, v in pairs(self.t_itemPlanks) do
+                    local items = ArrayList.new();
+                    items:add(self.itemRag);    items:add(v);
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k] = {};
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].name = v:getName();
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].icon = v:getTexture();
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].functions = self.splint;
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].arguments = {};
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].arguments.item = items;
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].arguments.bodyPart = bpFractured;
+                    ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu[k].arguments.action = "ContextMenu_Splint";
+                end
+            end
+            
+            if self.itemSplint then
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"] = {};
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].name = self.itemSplint:getName();
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].icon = self.itemSplint:getTexture();
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].functions = self.splint;
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].arguments = {};
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].arguments.item = self.itemSplint;
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].arguments.bodyPart = bpFractured;
+                ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].subMenu["itemSplint"].arguments.action = "ContextMenu_Splint";
+            end
         end
 
         ISMedicalRadialMenu.main["Fractures"].subMenu["Back"] = {};
