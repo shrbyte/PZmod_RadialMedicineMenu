@@ -440,14 +440,22 @@ function ISMedicalRadialMenu:surgeon(args)
         self:transferIfNeeded(character, args.item);
         ISTimedActionQueue.add(ISCleanBurn:new(character, character, args.item, args.bodyPart));
         return;
-    elseif args.action == "ContextMenu_Splint" then
+    end
+
+end
+
+-- Removing splint unavailable for now, idk, i think it's pointless.
+function ISMedicalRadialMenu:splint(args)
+    if args == nil then return end;
+    local character = getSpecificPlayer(0);
+
+    if args.action == "ContextMenu_Splint" then
         self:transferIfNeeded(character, args.item);
         ISTimedActionQueue.add(ISSplint:new(character, character, nil, args.item, args.bodyPart, true));
         return;
     elseif args.action == "ContextMenu_Splint_Remove" then
         ISTimedActionQueue.add(ISSplint:new(character, character, nil, nil, args.bodyPart));
     end
-
 end
 
 function ISMedicalRadialMenu:applyCataplasm(args)
@@ -830,7 +838,7 @@ function ISMedicalRadialMenu:update()
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured] = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].name = BodyPartType.getDisplayName(bpFractured:getType());
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].icon = self:getBodyPartIcon(s_bpFractured);
-            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].functions = self.surgeon;
+            ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].functions = self.splint;
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments = {};
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.item = self.itemSplint;
             ISMedicalRadialMenu.main["Fractures"].subMenu[s_bpFractured].arguments.bodyPart = bpFractured;
