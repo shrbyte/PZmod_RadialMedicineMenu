@@ -142,8 +142,11 @@ function ISMedicalRadialMenu:getFracturedBodyParts(characterWounds)
     local bodyParts = {};
 
     for k, v in pairs(characterWounds) do
-        if not v.isSplint and v.fractureTime > 0 then
-            table.insert(bodyParts, k);
+        -- can't splint chest/head
+        if not (k:getType() == BodyPartType.Head or k:getType() == BodyPartType.Torso_Upper or k:getType() == BodyPartType.Torso_Lower) then
+            if not v.isSplint and v.fractureTime > 0 then
+                table.insert(bodyParts, k);
+            end
         end
     end
     return bodyParts;
