@@ -181,6 +181,9 @@ function ISRadialMedicineMenu:isItemTypeInTable(table, item)
 end
 
 function ISRadialMedicineMenu:findAllBestMedicine(character)
+    if not character then
+        character = self.character;
+    end
     local inventory = character:getInventory();
     local all_containers = self:getContainers(character);
 
@@ -1064,6 +1067,39 @@ function ISRadialMedicineMenu.onKeyReleased(key)
 		return;
 	end
 	STATE[1].keyPressedMS = nil
+end
+
+--#endregion
+
+--#region Dpad support
+
+function ISDPadWheels.onRadialMedicineMenu(joypadData)
+    local menu = ISRadialMedicineMenu:new(getSpecificPlayer(joypadData.player));
+    menu:update(getSpecificPlayer(joypadData.player));
+    menu:fillMenu();
+end
+
+function ISDPadWheels.onRadialEmoteMenu(joypadData)
+    local erm = ISEmoteRadialMenu:new(getSpecificPlayer(joypadData.player))
+	erm:fillMenu()
+end
+
+function ISDPadWheels.onDisplayDown(joypadData)
+    local isPaused = UIManager.getSpeedControls() and UIManager.getSpeedControls():getCurrentGameSpeed() == 0
+	if isPaused then return end
+
+    local menu = getPlayerRadialMenu(joypadData.player)
+	menu:clear()
+
+    menu:addSlice(getText("UI_optionscreen_binding_Shout"), getTexture("media/ui/emotes/wavehello.png"), ISDPadWheels.onRadialEmoteMenu, joypadData);
+    menu:addSlice(getText("UI_optionscreen_binding_Toggle Health Panel"), getTexture("media/ui/Heart2_On.png"), ISDPadWheels.onRadialMedicineMenu, joypadData);
+
+    menu:setX(getPlayerScreenLeft(joypadData.player) + getPlayerScreenWidth(joypadData.player) / 2 - menu:getWidth() / 2)
+	menu:setY(getPlayerScreenTop(joypadData.player) + getPlayerScreenHeight(joypadData.player) / 2 - menu:getHeight() / 2)
+	menu:addToUIManager()
+	menu:setHideWhenButtonReleased(Joypad.DPadDown)
+	setJoypadFocus(joypadData.player, menu)
+	getSpecificPlayer(joypadData.player):setJoypadIgnoreAimUntilCentered(true)
 end
 
 --#endregion
