@@ -1,0 +1,3 @@
+IG_UI_EN = {
+    IGUI_DisplayRadMedImmediately = "Display Radial Medicine Menu immediately",
+}

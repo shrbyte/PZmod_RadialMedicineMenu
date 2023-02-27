@@ -3,14 +3,52 @@ require "ISUI/ISRadialMenu"
 
 ISRadialMedicineMenu = ISBaseObject:derive("ISRadialMedicineMenu");
 
+--#region Configurability / ModOptions.
+
+local CONFIG = {}
+
 local KEY_RMM = {
     name = "Radial Medicine Menu",
     key = Keyboard.KEY_Z,
 }
 
-if ModOptions and ModOptions.AddKeyBinding then
-    ModOptions:AddKeyBinding("[UI]", KEY_RMM)
+local function setupDefaultConfig()
+    CONFIG.display_radial_immediately = false;
 end
+
+if ModOptions and ModOptions.AddKeyBinding then
+    ModOptions:AddKeyBinding("[UI]", KEY_RMM);
+end
+
+if ModOptions and ModOptions.getInstance then
+    local function onModOptionsApply(values)
+        CONFIG.display_radial_immediately = values.settings.options.display_radial_immediately;
+    end
+
+    local SETTINGS = {
+        options_data = {
+            display_radial_immediately = {
+                name = "IGUI_DisplayRadMedImmediately",
+                tooltip = nil,
+                default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply,
+            },
+        },
+        mod_id = 'RadialMedicineMenu',
+        mod_shortname = 'RadMed',
+        mod_fullname = 'Radial Medicine Menu',
+    }
+
+    local settings = ModOptions:getInstance(SETTINGS);
+    
+    ModOptions:loadFile();
+    Events.OnPreMapLoad.Add(function() onModOptionsApply({ settings = SETTINGS }) end)
+else
+    setupDefaultConfig();
+end
+
+--#endregion
 
 local bodyPartIcons = {
     ["Back"]        =   "media/ui/emotes/gears.png",
@@ -1045,6 +1083,9 @@ function ISRadialMedicineMenu.onKeyRepeat(key)
 
     local radialMenu = getPlayerRadialMenu(0);
     local delay = 500;
+    if CONFIG.display_radial_immediately == true then
+		delay = 0
+	end
     if (getTimestampMs() - STATE[1].keyPressedMS >= delay) and not radialMenu:isReallyVisible() then
         local menu = ISRadialMedicineMenu:new(getSpecificPlayer(0));
         menu:update();
