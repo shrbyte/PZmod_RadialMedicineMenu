@@ -295,7 +295,7 @@ function ISRadialMedicineMenu:findAllBestMedicine(character)
                 end
             end
             
-            if self:startWith(item:getType(), "Pills") then
+            if self:startWith(item:getType(), "Pills") or item:getType() == "Antibiotics" then
                 if self:isItemTypeInTable(self.t_itemPills, item) then
                     if inventory:contains(item, false) then
                         self.t_itemPills[item:getType()] = item;
@@ -444,6 +444,11 @@ function ISRadialMedicineMenu:takePills(args)
     local srcContainer = args.item:getContainer();
 
     self:transferIfNeeded(character, args.item);
+    -- wtf, why Antibiotics isn't Drainable??
+    if args.item:getType() == "Antibiotics" then
+        ISTimedActionQueue.add(ISEatFoodAction:new(character, args.item));
+        return;
+    end
     local takePillsAction = ISTakePillAction:new(character, args.item, 165);
     ISTimedActionQueue.add(takePillsAction);
     if args.item:getDrainableUsesInt() > 1 and srcContainer:getType() ~= "floor" then
