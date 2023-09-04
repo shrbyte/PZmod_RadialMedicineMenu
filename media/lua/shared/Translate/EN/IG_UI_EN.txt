@@ -1,3 +1,4 @@
 IG_UI_EN = {
     IGUI_DisplayRadMedImmediately = "Display Radial Medicine Menu immediately",
+    IGUI_AllowQuickRebandage = "Allow quick bandage change"
 }

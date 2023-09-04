@@ -1,3 +1,4 @@
 IG_UI_RU = {
     IGUI_DisplayRadMedImmediately = "ќткрывать радиальное меню медицины при нажатии",
+    IGUI_AllowQuickRebandage = "¬озможность быстрой замены пов€зки"
 }
