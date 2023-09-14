@@ -455,6 +455,7 @@ function ISRadialMedicineMenu:takePills(args)
     self:transferIfNeeded(character, args.item)
     
     -- wtf, why Antibiotics isn't Drainable??
+    -- Default behaviour if "AntibioticsNotFood" mod isnt installed
     if not getActivatedMods():contains("AntibioticsNotFood") then
         if args.item:getType() == "Antibiotics" then
             ISTimedActionQueue.add(ISEatFoodAction:new(character, args.item))
