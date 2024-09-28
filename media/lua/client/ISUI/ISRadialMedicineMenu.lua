@@ -648,8 +648,11 @@ function ISRadialMedicineMenu:update()
 
         if #t_bandagedBodyParts > 0 then
             self:createSubmenuItem(dressingSubMenu, "Remove", getText("ContextMenu_Remove_Bandage"), getTexture("media/ui/emotes/no.png"))
-
-            self:createSubmenuItem(dressingSubMenu, "Replace", "Replace bandage", getTexture("media/ui/emotes/followme.png"))
+            
+            if CONFIG.allow_quick_rebandage == true
+                and (len(self.t_itemCleanBandages) > 0 or len(self.t_itemDirtyBandages) > 0) then
+                self:createSubmenuItem(dressingSubMenu, "Replace", "Replace bandage", getTexture("media/ui/emotes/followme.png"))
+            end
 
             for i = 1, #t_bandagedBodyParts do
                 local bpBandaged = t_bandagedBodyParts[i];
@@ -659,7 +662,7 @@ function ISRadialMedicineMenu:update()
                         BodyPartType.getDisplayName(bpBandaged:getType()), self:getBodyPartIcon(s_bpBandaged),
                         self.applyBandage, {item = bpBandaged:getBandageType(), bodyPart = bpBandaged, action = "ContextMenu_Remove_Bandage"})
 
-                if CONFIG.allow_quick_rebandage == true then
+                if dressingSubMenu.subMenu["Replace"] ~= nil then
 
                     self:createSubmenuItem(dressingSubMenu.subMenu["Replace"], s_bpBandaged, BodyPartType.getDisplayName(bpBandaged:getType()), self:getBodyPartIcon(s_bpBandaged))
 
@@ -677,7 +680,7 @@ function ISRadialMedicineMenu:update()
                 end
             end
 
-            if CONFIG.allow_quick_rebandage == true then
+            if dressingSubMenu.subMenu["Replace"] ~= nil then
                 self:createSubmenuItem(dressingSubMenu.subMenu["Replace"], "Back", getText("IGUI_Emote_Back"), getTexture("media/ui/emotes/back.png"), self.fillMenu, dressingSubMenu.subMenu)
             end
             self:createSubmenuItem(dressingSubMenu.subMenu["Remove"], "Back", getText("IGUI_Emote_Back"), getTexture("media/ui/emotes/back.png"), self.fillMenu, dressingSubMenu.subMenu)
